@@ -24,3 +24,7 @@
 .animate-borderColor {
   animation: borderColor 3s infinite linear;
 }
+
+.wallet-adapter-button {
+  font-family: 'Virgil', cursive !important; /* Use your custom font */
+}
