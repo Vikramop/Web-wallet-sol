@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Token = () => {
-  return <div>Token</div>;
+  return <div className="mt-32">Token</div>;
 };
 
 export default Token;

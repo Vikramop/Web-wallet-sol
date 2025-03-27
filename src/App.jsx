@@ -9,6 +9,7 @@ import Token from './pages/Token';
 import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
 import Home from './pages/Home';
+import PageTransition from './PageTransition';
 
 function App() {
   return (
@@ -23,10 +24,12 @@ function App() {
           <Router>
             <Navbar />
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/tokens" element={<Token />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/web-wallet" element={<Wallet />} />
+              <Route element={<PageTransition />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/tokens" element={<Token />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/web-wallet" element={<Wallet />} />
+              </Route>
             </Routes>
           </Router>
         </WalletProvider>
