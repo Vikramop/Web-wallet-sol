@@ -23,10 +23,10 @@ function App() {
           <Router>
             <Navbar />
             <Routes>
-              <Route path="/" element={<Home />} />
+              {/* <Route path="/" element={<Home />} />
               <Route path="/tokens" element={<Token />} />
               <Route path="/transactions" element={<Transactions />} />
-              <Route path="/web-wallet" element={<Wallet />} />
+              <Route path="/web-wallet" element={<Wallet />} /> */}
             </Routes>
           </Router>
         </WalletProvider>
