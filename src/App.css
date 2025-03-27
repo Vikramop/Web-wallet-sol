@@ -1,0 +1,26 @@
+@keyframes borderColor {
+  0% {
+    border-color: #ff5252;
+    box-shadow: 0 0 10px 2px rgba(255, 82, 82, 0.6);
+  }
+  25% {
+    border-color: #ffde52;
+    box-shadow: 0 0 10px 2px rgba(255, 222, 82, 0.6);
+  }
+  50% {
+    border-color: #52ff65;
+    box-shadow: 0 0 10px 2px rgba(82, 255, 101, 0.6);
+  }
+  75% {
+    border-color: #527dff;
+    box-shadow: 0 0 10px 2px rgba(82, 125, 255, 0.6);
+  }
+  100% {
+    border-color: #ff5252;
+    box-shadow: 0 0 10px 2px rgba(255, 82, 82, 0.6);
+  }
+}
+
+.animate-borderColor {
+  animation: borderColor 3s infinite linear;
+}
