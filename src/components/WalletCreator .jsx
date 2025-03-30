@@ -84,7 +84,7 @@ const WalletCreator = () => {
       {mnemonic && (
         <div className="mt-6">
           <h2 className="text-xl font-bold mb-4">Your Mnemonic Key:</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 relative -z-10">
             {mnemonic.split(' ').map((word, index) => (
               <span
                 key={index}
@@ -118,13 +118,13 @@ const WalletCreator = () => {
       </button>
 
       {/* Account Cards */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative -z-10">
         {accounts.map((account) => (
           <div
             key={account.id}
             className="p-4 bg-white/10 rounded-lg shadow-lg backdrop-blur-lg border border-gray-300"
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-white mb-4 font-virgil">
               Balance: ${account.balance}
             </h2>
             <div className="flex justify-center gap-10 mb-4">
