@@ -1,6 +1,5 @@
 import React from 'react';
 import WalletCreator from '../components/WalletCreator ';
-import MintToken from '../components/MintToken';
 
 const Wallet = () => {
   return (
