@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as bip39 from 'bip39';
+
 import { Buffer } from 'buffer';
 
 // Polyfill Buffer globally
@@ -29,7 +30,6 @@ const WalletCreator = () => {
     localStorage.setItem('accounts', JSON.stringify(accounts));
   }, [accounts]);
 
-  // Generate a new mnemonic phrase and wallet
   const createWallet = () => {
     try {
       const newMnemonic = bip39.generateMnemonic(); // Generate a 12-word mnemonic

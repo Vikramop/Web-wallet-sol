@@ -1,58 +1,37 @@
 import React, { useState } from 'react';
-
-// Import Solana libraries AFTER setting Buffer
+import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import {
-  Connection,
-  Keypair,
-  PublicKey,
-  LAMPORTS_PER_SOL,
-  Transaction,
-  SystemProgram,
-} from '@solana/web3.js';
-import {
-  createMint,
-  createMintToInstruction,
   getOrCreateAssociatedTokenAccount,
   mintTo,
-  getAssociatedTokenAddress,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
+  createMint,
 } from '@solana/spl-token';
-import axios from 'axios';
 import { useWallet } from '@solana/wallet-adapter-react';
+import bs58 from 'bs58';
 
-// Initialize Solana Devnet connection
-const connection = new Connection(
-  'https://solana-devnet.g.alchemy.com/v2/zhC5LCHoF-DwUmkJgJVlnt1Q1a8cuOcW',
-  'confirmed'
-);
+const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
-// Pinata API keys (replace with your own keys)
-// const PINATA_API_KEY = import.meta.env.VITE_PINATA_API_KEY;
-// const PINATA_API_SECRET = import.meta.env.VITE_PINATA_API_SECRET;
+const PrivateKey = import.meta.env.VITE_PHANTOM_PRIVATE_KEY;
+const feePayer = Keypair.fromSecretKey(bs58.decode(PrivateKey));
 
 const Token = () => {
-  const { publicKey, connect, signTransaction, sendTransaction } = useWallet();
+  const { publicKey, connect, signTransaction } = useWallet();
   const [status, setStatus] = useState('');
   const [tokenDetails, setTokenDetails] = useState({
     name: '',
     symbol: '',
     decimals: 9,
-    supply: 1000,
+    supply: 10,
     description: '',
   });
   const [mintAddress, setMintAddress] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [recipientAddress, setRecipientAddress] = useState('');
-  // const [freezeAuthorityEnabled, setFreezeAuthorityEnabled] = useState(false);
 
-  // Handle input changes for token details
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTokenDetails({ ...tokenDetails, [name]: value });
   };
 
-  // Function to create a token
   const createToken = async (event) => {
     event.preventDefault();
 
@@ -62,90 +41,24 @@ const Token = () => {
     }
 
     try {
-      setStatus('⏳ Creating token on Solana...');
-
-      // ✅ Use Alchemy RPC for the connection
-      const alchemyConnection = new Connection(
-        'https://solana-devnet.g.alchemy.com/v2/zhC5LCHoF-DwUmkJgJVlnt1Q1a8cuOcW',
-        'confirmed'
+      const mint = await createMint(
+        connection,
+        feePayer,
+        feePayer.publicKey,
+        feePayer.publicKey,
+        Number(tokenDetails.decimals)
       );
 
-      // ✅ Check if wallet has enough balance
-      const walletBalance = await alchemyConnection.getBalance(publicKey);
-      if (walletBalance < 0.05 * LAMPORTS_PER_SOL) {
-        setStatus('❌ Not enough SOL in wallet. Please add funds.');
-        return;
-      }
-
-      console.log(
-        'Wallet Public Key:',
-        publicKey?.toBase58() || '❌ Not available'
-      );
-      console.log('Signer Available:', signTransaction ? '✅ Yes' : '❌ No');
-      console.log('Alchemy Connection:', alchemyConnection.rpcEndpoint);
-
-      // ✅ Generate a new Keypair for the mint
-      const mintKeypair = Keypair.generate();
-      const mintAddress = mintKeypair.publicKey.toBase58();
-      console.log('✅ Mint Keypair Generated:', mintAddress);
-
-      // Fetch the recent blockhash
-      const { blockhash } = await alchemyConnection.getLatestBlockhash();
-      console.log('✅ Recent Blockhash:', blockhash);
-
-      // Create the mint token transaction
-      const transaction = new Transaction({
-        recentBlockhash: blockhash,
-        feePayer: publicKey, // Ensure the correct fee payer
-      });
-
-      // Create the associated token address (for the token receiver)
-      const receiverTokenAddress = await getAssociatedTokenAddress(
-        mintKeypair.publicKey, // Mint address
-        publicKey // Owner address
-      );
-
-      // Create the mint-to instruction
-      const mintToInstruction = createMintToInstruction(
-        mintKeypair.publicKey, // Mint address
-        receiverTokenAddress, // Receiver's associated token address
-        publicKey, // Mint authority
-        1 * LAMPORTS_PER_SOL, // Amount to mint (example: 1 token)
-        [],
-        TOKEN_PROGRAM_ID
-      );
-
-      transaction.add(mintToInstruction);
-
-      // Sign the transaction
-      const signedTransaction = await signTransaction(transaction);
-
-      // Send the transaction
-      const txId = await alchemyConnection.sendTransaction(signedTransaction, [
-        mintKeypair,
-      ]);
-
-      // Confirm the transaction
-      const confirmation = await alchemyConnection.confirmTransaction(
-        txId,
-        'confirmed'
-      );
-      if (confirmation.value.err) {
-        setStatus('❌ Token creation failed.');
-        console.error('❌ Token creation error:', confirmation.value.err);
-      } else {
-        setMintAddress(mintKeypair.publicKey.toBase58());
-        setStatus(
-          `✅ Token created successfully! Mint Address: ${mintKeypair.publicKey.toBase58()}`
-        );
-      }
-    } catch (error) {
-      setStatus('❌ Error creating token.');
-      console.error('Token creation error:', error);
+      const mintPubkey = mint.toBase58(); // ✅ Corrected
+      setMintAddress(mintPubkey);
+      alert(`✅ Token Created: ${mintPubkey}`);
+      console.log(`mint: ${mintPubkey}`);
+    } catch (err) {
+      console.error('❌ Error creating token:', err);
+      setStatus('❌ Token creation failed.');
     }
   };
 
-  // Function to mint tokens
   const mintTokens = async () => {
     if (!recipientAddress) {
       setStatus('❌ Please enter a recipient wallet address.');
@@ -162,30 +75,30 @@ const Token = () => {
       const mint = new PublicKey(mintAddress);
       const recipientPublicKey = new PublicKey(recipientAddress);
 
-      // ✅ Get or create the associated token account for the recipient
       const tokenAccount = await getOrCreateAssociatedTokenAccount(
         connection,
-        publicKey, // Payer (wallet)
+        feePayer, // ✅ feePayer must sign
         mint,
         recipientPublicKey
       );
 
       console.log('✅ Token Account Address:', tokenAccount.address.toBase58());
 
-      // ✅ Mint tokens to the recipient's token account
       await mintTo(
         connection,
-        publicKey, // Payer (wallet)
+        feePayer, // ✅ feePayer signs the transaction
         mint,
-        tokenAccount.address, // Recipient's token account
-        publicKey, // Mint authority
-        tokenDetails.supply * Math.pow(10, tokenDetails.decimals) // Amount
+        tokenAccount.address,
+        feePayer.publicKey, // Mint authority
+        tokenDetails.supply * Math.pow(10, tokenDetails.decimals)
       );
 
-      setStatus(`✅ Tokens minted successfully to ${recipientAddress}!`);
+      setStatus(
+        `✅ ${tokenDetails.supply} tokens minted to ${recipientAddress}`
+      );
     } catch (error) {
+      console.error('❌ Minting error:', error);
       setStatus('❌ Error minting tokens.');
-      console.error('Minting error:', error);
     }
   };
 
@@ -251,14 +164,6 @@ const Token = () => {
           onChange={(e) => setSelectedFile(e.target.files[0])}
         />
 
-        {/* <label>
-          <input
-            type="checkbox"
-            checked={freezeAuthorityEnabled}
-            onChange={() => setFreezeAuthorityEnabled(!freezeAuthorityEnabled)}
-          />
-          Enable Freeze Authority
-        </label> */}
         <div style={{ marginTop: '20px' }}>
           {publicKey ? (
             <button onClick={createToken}>Create Token</button>
